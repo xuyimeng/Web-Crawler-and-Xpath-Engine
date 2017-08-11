@@ -1,25 +1,51 @@
-Full name:  ____Yimeng__________
-SEAS login: _____Xu_________
+Author name:  ____Yimeng Xu_________
 
-Which features did you implement? 
-  (list features, or write 'Entire assignment')
-Entire assignment
-Did you complete any extra-credit tasks? If so, which ones?
-  (list extra-credit tasks)
-no
-Any special instructions for building and running your solution?
-  (include detailed instructions, or write 'None')
+**********************************************************************
+Introduction for this project:
+
+This project build a topic specific crawler looks for documents or data matching for a particular category — specified as an XPath expression. The system includs following components:
+
+1. A servlet-based Web application that allows users to create topic-specific “channels” defined by a set of XPath expression and displays documents that match a channel. 
+
+2. A crawler that traverses the Web, looking for HTML and XML documents that match one of the XPath expression. 
+
+3. An XPath evaluation engine that determines if an HTML or XML document that match one of the XPath expressions 
+
+4. A persistent data store, using Oracle Berkeley DB,to hold retrieved HTML/XML documents and channel definitions
+
+**********************************************************************
+instructions for building and running your solution?
+
 To Run stormLite under folder  edu.upenn.cis.stormlite.RunCrawlerStorm specify :
-http://crawltest.cis.upenn.edu ./database 1000 50 (same as MS1)
-Did you personally write _all_ the code you are submitting
-(other than code from the course web page)?
-  [* ] Yes
-  [ ] No
+http://crawltest.cis.upenn.edu ./database 1000 50 
 
-Did you copy any code from the Internet, or from classmates?
-  [ ] Yes
-  [ *] No
-
-Did you collaborate with anyone on this assignment?
-  [ ] Yes
-  [ *] No
+- Crawler Web Interface.
+    - Path: /servlet/crawler
+    - Be able to 
+    	- start the crawler
+    	- set crawler parameters
+	- display results after the crawler's execution
+		- number of HTML pages scanned for links
+		- list of HTML pages scanned for links, linked to LookupServlet
+		- number of XML documents retrieved
+		- list of XML pages scanned for links, linked to LookupServlet
+		- amount of data downloaded
+		- number and list of servers visited	
+  - I claimed "database" as DB path in both web.xml and "ant crawl" target in build.xml.
+  - I use Jetty to test my servlets. Here are their functions, names, and paths to call using Jetty.
+    e.g. send a GET request to XPathServlet using http://localhost:8080/servlet/xpath. 
+  	- main page      XPathServlet      /servlet/xpath
+  	- log in page    LoginServlet      /servlet/login
+  	- sign up page   SignupServlet     /servlet/signup
+  	- logout page    LogoutServlet     /servlet/logout
+  	- lookup page    LookupServlet     /servlet/lookup?url=xxxxxx
+  	- POST-TO page   RegisterServlet   /servlet/register.jsp
+  - I use JSoup to traverse links in HTML documents.
+  	- Include jsoup-1.9.2.jar in lib
+  - ant crawl: launch main method in XPathCrawler, crawl the Web starting with the sandbox.
+  	- I set the parameters of 'crawl' target in build.xml as following:
+	<arg value="http://crawltest.cis.upenn.edu"/>
+	<arg value="database"/>
+	<arg value="100"/>
+  - ant servlet: copy servlet to /jetty/webapps and start Jetty from /jetty.
+  
