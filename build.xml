@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+
+<project name="HW2" default="build" basedir=".">
+    <property name="shared.root" location="${basedir}"/>
+    <property name="file.separator" location="/"/>
+    <property name="project.root" location="${basedir}"/>
+    <property name="build.dir" location="${project.root}"/>
+    <property name="build.target.dir" location="${project.root}${file.separator}target"/>
+    <property name="web-inf.dir" location="${build.target.dir}${file.separator}WEB-INF"/>
+    <property name="classes.dir"     location="${web-inf.dir}${file.separator}classes"/>
+    <property name="web-inf.lib.dir" location="${web-inf.dir}${file.separator}lib"/>
+    <property name="test-classes.dir" location="${build.target.dir}${file.separator}test${file.separator}classes"/>
+    <property name="test-lib.dir"     location="${build.target.dir}${file.separator}test${file.separator}lib"/>
+    <property name="src.main.dir"  location="${build.dir}${file.separator}src${file.separator}"/>
+    <property name="inputlib.dir"  location="${shared.root}${file.separator}lib"/>
+    <property name="src.test.dir"  location="${build.dir}${file.separator}src${file.separator}test"/>
+    <property name="resources.dir" location="${build.dir}${file.separator}resources"/>
+    <property name="conf.dir"      location="${build.dir}${file.separator}conf"/>
+
+    <target name="compile-xpathengine" description="Compiles the XPath engine">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="src/edu/upenn/cis455/xpathengine" destdir="${classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+            <classpath>
+                <fileset dir="${inputlib.dir}">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+        </javac>
+    </target>
+    
+    <target name="compile-storage" depends="compile-xpathengine" description="Compiles the storage system">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="src/edu/upenn/cis455/storage" destdir="${classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+            <classpath>
+                <fileset dir="${inputlib.dir}">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+        </javac>
+    </target>
+    
+    <target name="compile-crawler" depends="compile-storage" description="Compiles the crawler">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="src/edu/upenn/cis455/crawler" destdir="${classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+            <classpath>
+                <fileset dir="${inputlib.dir}">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+        </javac>
+    </target>
+    
+    <target name="compile-servlet" depends="compile-xpathengine,compile-storage" description="Compiles the servlet">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="src/edu/upenn/cis455/servlet" destdir="${classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+            <classpath>
+                <fileset dir="${inputlib.dir}">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+        </javac>
+    </target>
+    
+    <target name="compile-tests" description="compiles test Java source code">
+      <mkdir dir="${test-classes.dir}"/>
+      <javac srcdir="${src.test.dir}${file.separator}" destdir="${test-classes.dir}" debug="on" deprecation="off" optimize="on" includeAntRuntime="no">
+	<classpath>
+	  <pathelement path="${classes.dir}" />
+	  <fileset dir="${inputlib.dir}">
+	    <include name="*.jar"/>
+	  </fileset>
+	</classpath>
+      </javac>
+    </target>
+    
+    <target name="test" depends="compile-tests,compile-crawler,compile-servlet" description="Run tests">
+      <java failonerror="true" fork="true" classname="junit.textui.TestRunner">
+        <classpath>
+          <pathelement location="${test-classes.dir}"/>
+          <pathelement location="${classes.dir}"/>
+           <fileset dir="${inputlib.dir}">
+               <include name="*.jar"/>
+           </fileset>
+        </classpath>
+        <arg value="test.edu.upenn.cis455.RunAllTests"/>
+      </java>
+    </target>
+  
+    <target name="clean" description="Deletes all the compiled files">
+        <delete dir="${build.target.dir}"/>
+        <delete file="crawler.jar"/>
+        <delete file="servlet.war"/>
+        <delete file="submit-hw2.zip"/>
+    </target>
+    
+    <target name="crawler-jar" depends="compile-crawler" description="Makes the JAR file for the crawler">
+        <delete file="crawler.jar"/>
+        <jar destfile="crawler.jar" update="true">
+        	<manifest>
+        		<attribute name="Main-Class" value="edu.upenn.cis455.crawler.XPathCrawler"/>
+        	</manifest>
+            <fileset dir="${classes.dir}">
+                <include name="**/*.class"/>
+            </fileset>
+        </jar>
+    </target>
+
+    <target name="servlet-war" depends="compile-servlet" description="Makes the WAR file for the servlet">
+        <delete file="servlet.war"/>
+        <copy file="${conf.dir}${file.separator}web.xml" tofile="${web-inf.dir}${file.separator}web.xml" overwrite="true" />
+        <copy todir="${web-inf.lib.dir}" overwrite="true">
+            <fileset dir="${inputlib.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+        <jar destfile="servlet.war" update="true">
+            <fileset dir="target">
+                <include name="**/*.class"/>
+                <include name="**/*.jar"/>
+                <include name="WEB-INF/web.xml"/>
+            </fileset>
+        </jar>
+    </target>
+
+    <target name="build" depends="crawler-jar,servlet-war">
+    </target>
+
+    <target name="pack" description="Create an archive for submission">
+      <zip destfile="submit-hw2.zip">
+        <zipfileset dir="." excludes="target/**,examples/**,**/*.class,submit-hw2.zip,servlet.war,crawler.jar"/>
+      </zip>
+    </target>
+	
+	<target name="crawl" depends="crawler-jar" description="Run crawl">
+	      <java fork="true" classname="edu.upenn.cis455.crawler.XPathCrawler">
+	        <classpath>
+	          <pathelement location="${classes.dir}"/>
+	           <fileset dir="${inputlib.dir}">
+	               <include name="*.jar"/>
+	           </fileset>
+	        </classpath>
+	        <arg line="http://crawltest.cis.upenn.edu ./database 1000 50"/>
+	      </java>
+	 </target>
+
+</project>
